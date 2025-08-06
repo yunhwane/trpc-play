@@ -10,7 +10,7 @@ export function allUserAPIRoutes(
 ) {
   return router({
     addUser: createUserAPI(db),
-    getUser: getUserAPI(),
+    getUser: getUserAPI(db),
     updateUser: updateUserAPI(db),
     deleteUser: deleteUserAPI(db),
   })

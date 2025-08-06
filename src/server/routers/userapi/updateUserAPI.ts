@@ -3,6 +3,7 @@ import type { DBType } from "../../../db/db";
 import { protectedProcedure } from "../../trpc";
 import { usersTable } from "../../../db/user.schema";
 import { eq } from "drizzle-orm";
+import { success } from "../../types/response";
 
 
 
@@ -15,16 +16,15 @@ export function updateUserAPI(db: DBType) {
   })).mutation(async ({ input, ctx }) => {
     const user = await db.update(usersTable).set({
       email: input.email
-    }).where(eq(usersTable.id, ctx.user.id));
+    }).where(eq(usersTable.id, ctx.user.id)).returning();
 
-    return {
-      status: 'success',
-      data: {
-        id: ctx.user.id,
-        email: input.email,
-        createdAt: ctx.user.createdAt,
-        updatedAt: ctx.user.updatedAt,
+    return success(
+      {
+        id: user[0]?.id,
+        email: user[0]?.email,
+        createdAt: user[0]?.createdAt,
+        updatedAt: user[0]?.updatedAt,
       }
-    }
+    )
   })
 }

@@ -1,4 +1,4 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import { isAuth } from "./auth";
 
 
@@ -12,6 +12,18 @@ const t = initTRPC.context<typeof createContext>().create();
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(isAuth);
+export const protectedProcedure = t.procedure.use(function isAuthenticated(opts) {
+  const loginedUserId = opts.ctx.userId;
 
-export const middleware = t.middleware;
+  if(!loginedUserId) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Missing user ID' });
+  }
+
+  return opts.next ({
+    ctx: {
+      user: {
+        id: loginedUserId,
+      }
+    }
+  })
+});

@@ -2,6 +2,7 @@ import z from "zod"
 import { publicProcedure } from "../../trpc"
 import type { DBType } from "../../../db/db"
 import { usersTable } from "../../../db/user.schema"
+import { success } from "../../types/response"
 
 /**
  * 유저 생성 API 
@@ -12,6 +13,8 @@ export function createUserAPI(db: DBType) {
     email: z.email(),
     password: z.string().min(8),
   })).mutation(async ({ input }) => {
+    
+    
     const user = await db
       .insert(usersTable)
       .values({
@@ -19,9 +22,14 @@ export function createUserAPI(db: DBType) {
         password: input.password,
       })
       .returning();
-    return {
-      status: 'success',
-      data: user
-    }
+      
+    return success(
+      {
+        id: user[0]?.id!,
+        email: user[0]?.email!,
+        createdAt: user[0]?.createdAt!,
+        updatedAt: user[0]?.updatedAt!,
+      }
+    )
   })
 }
