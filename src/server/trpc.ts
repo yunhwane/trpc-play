@@ -1,29 +1,15 @@
-import { initTRPC, TRPCError } from "@trpc/server";
-import { isAuth } from "./auth";
+import { initTRPC } from "@trpc/server";
+import { type AuthTokenType } from "./utils/jwt";
+import { type CreateExpressContextOptions } from '@trpc/server/adapters/express'
 
 
-function createContext() {
-  return {
-    userId: null,
-  }
-};
 
-const t = initTRPC.context<typeof createContext>().create();
+export async function createContext(opts: CreateExpressContextOptions) {
+  const token = opts.req.headers.get('authorization') as AuthTokenType ?? null;
+  return { token };
+}
+type ContextType = Awaited<ReturnType<typeof createContext>>;
+const t = initTRPC.context<ContextType>().create();
 
 export const router = t.router;
-export const publicProcedure = t.procedure;
-export const protectedProcedure = t.procedure.use(function isAuthenticated(opts) {
-  const loginedUserId = opts.ctx.userId;
-
-  if(!loginedUserId) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Missing user ID' });
-  }
-
-  return opts.next ({
-    ctx: {
-      user: {
-        id: loginedUserId,
-      }
-    }
-  })
-});
+export const procedure = t.procedure;

@@ -1,15 +1,15 @@
 import z from "zod"
-import { publicProcedure } from "../../trpc"
+import { procedure } from "../../trpc"
 import type { DBType } from "../../../db/db"
 import { usersTable } from "../../../db/user.schema"
-import { success } from "../../types/response"
+import { asSuccess } from "../../types/response"
 
 /**
  * 유저 생성 API 
  */
 export function createUserAPI(db: DBType) {
   
-  return publicProcedure.input(z.object({
+  return procedure.input(z.object({
     email: z.email(),
     password: z.string().min(8),
   })).mutation(async ({ input }) => {
@@ -23,7 +23,7 @@ export function createUserAPI(db: DBType) {
       })
       .returning();
       
-    return success(
+    return asSuccess(
       {
         id: user[0]?.id!,
         email: user[0]?.email!,
